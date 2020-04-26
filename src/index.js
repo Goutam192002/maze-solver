@@ -1,80 +1,65 @@
-import React from "react";
+import React, {useState} from "react";
 import ReactDOM from "react-dom";
 import './index.css';
 
-function Square(props) {
+const Square = (props) => {
     if(props.value) {
         return (<button className="black-square" onClick={() => props.onClick()}/>)
     } else {
         return (<button className="white-square" onClick={() => props.onClick()}/>)
     }
-}
+};
 
-class Board extends React.Component {
+const Board = (props) => {
+    return (
+        <div>
+            {
+                props.squares.map((item, itemIndex) => {
+                    return (
+                        <div key={itemIndex} className="board-row">
+                            {
+                                item.map( (column, columnIndex) =>  {
+                                    return (
+                                        <Square
+                                            key={columnIndex}
+                                            value={props.squares[itemIndex][columnIndex]}
+                                            onClick={() => props.onClick(itemIndex, columnIndex)}
+                                        />
+                                    );
+                                })
+                            }
+                        </div>
+                    )
+                })
+            }
+        </div>
+    );
+};
 
-    renderSquare(i, j) {
-        return (
-            <Square
-                key={j}
-                value={this.props.squares[i][j]}
-                onClick={() => this.props.onClick(i, j)}
-            />
-        );
-    }
 
-    render() {
-        return (
-            <div>
-                {
-                    this.props.squares.map((item, itemIndex) => {
-                        return (
-                            <div key={itemIndex} className="board-row">
-                                {
-                                    item.map( (column, columnIndex) =>  {
-                                        return (this.renderSquare(itemIndex, columnIndex))
-                                    })
-                                }
-                            </div>
-                        )
-                    })
-                }
-            </div>
-        );
-    }
-}
+const Game = (props) => {
+    const [state, updateState] = useState({
+        rows: 3,
+        columns: 3,
+        squares: [
+            [false, false, false],
+            [false, false, false],
+            [false, false, false],
+        ]
+    });
 
-class Game extends React.Component {
-    constructor(props) {
-        super(props);
-        this.state = {
-            rows: 3,
-            columns: 3,
-            squares: [
-                [false, false, false],
-                [false, false, false],
-                [false, false, false],
-            ]
-        };
-    }
-
-    onClick = (i, j) => {
-        const squares = this.state.squares.slice();
-        squares[i][j] = !squares[i][j];
-        this.setState({ squares: squares })
-    };
-
-    handleInputChange(event) {
+    const handleInputChange = (event) => {
         const target = event.target;
         const value = parseInt(target.value);
         const name = target.name;
-        const array = this.state.squares.slice();
+        const array = state.squares.slice();
         if (name === 'rows') {
-            const difference = value - this.state.rows;
+            const difference = value - state.rows;
             console.log(difference);
             if (difference > 0) {
                 for (let i = 0; i < difference; i++) {
                     const row = [];
-                    for (let j = 0; j < this.state.columns; j++) {
+                    for (let j = 0; j < state.columns; j++) {
                         row.push(false);
                     }
                     array.push(row);
@@ -83,8 +68,7 @@ class Game extends React.Component {
                 array.splice(difference);
             }
         } else {
-            const difference = value - this.state.columns;
-            console.log(difference);
+            const difference = value - state.columns;
             if (difference > 0) {
                 for (let i = 0; i < array.length; i++) {
                     for (let j = 0; j < difference; j++) {
@@ -97,41 +81,41 @@ class Game extends React.Component {
                 }
             }
         }
-        console.log(array);
-        this.setState({
-            [name]: value,
-            squares: array
-        });
-    }
+        updateState({ ...state, squares: array, [name]: value })
+    };
 
-    render() {
-        return (
-            <div>
-                <input name="rows"
-                       type="number"
-                       value={this.state.rows}
-                       onChange={(event) => this.handleInputChange(event)}
-                />
-                X
-                <input name="columns"
-                       type="number"
-                       value={this.state.columns}
-                       onChange={(event) => this.handleInputChange(event)}
-                />
-                <div className="game">
-                    <div className="game-board">
-                        <Board
-                            rows={this.state.rows}
-                            columns={this.state.columns}
-                            squares={this.state.squares}
-                            onClick={this.onClick}
-                        />
-                    </div>
+    const onClick = (i, j) => {
+        const squares = state.squares.slice();
+        squares[i][j] = !squares[i][j];
+        updateState({ ...state, squares })
+    };
+
+    return (
+        <div>
+            <input name="rows"
+                   type="number"
+                   value={state.rows}
+                   onChange={(event) => handleInputChange(event)}
+            />
+            X
+            <input name="columns"
+                   type="number"
+                   value={state.columns}
+                   onChange={(event) => handleInputChange(event)}
+            />
+            <div className="game">
+                <div className="game-board">
+                    <Board
+                        rows={state.rows}
+                        columns={state.columns}
+                        squares={state.squares}
+                        onClick={onClick}
+                    />
                 </div>
             </div>
-        );
-    }
-}
+        </div>
+    );
+};
 
 
 ReactDOM.render(
